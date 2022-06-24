@@ -371,7 +371,7 @@ func (t *Tracer) getConnTelemetry(mapSize int) map[network.ConnTelemetryType]int
 		network.MonotonicConnsClosed:      atomic.LoadInt64(&t.closedConns),
 	}
 
-	stats, err := t.getStats(conntrackStats, dnsStats, epbfStats, httpStats)
+	stats, err := t.getStats(conntrackStats, dnsStats, epbfStats, httpStats, stateStats)
 	if err != nil {
 		return nil
 	}
@@ -411,6 +411,14 @@ func (t *Tracer) getConnTelemetry(mapSize int) map[network.ConnTelemetryType]int
 	}
 	if usm, ok := ebpfStats["udp_sends_missed"]; ok {
 		tm[network.MonotonicUDPSendsMissed] = usm
+	}
+
+	stateStats := stats["state"].(map[string]int64)
+	if ccd, ok := stateStats["closed_conn_dropped"]; ok {
+		tm[network.MonotonicClosedConnDropped] = ccd
+	}
+	if cd, ok := stateStats["conn_dropped"]; ok {
+		tm[network.MonotonicConnDropped] = cd
 	}
 
 	return tm

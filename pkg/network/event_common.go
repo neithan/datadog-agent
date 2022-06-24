@@ -132,6 +132,8 @@ type ConnTelemetryType string
 const (
 	MonotonicKprobesTriggered          ConnTelemetryType = "kprobes_triggered"
 	MonotonicKprobesMissed             ConnTelemetryType = "kprobes_missed"
+	MonotonicClosedConnDropped         ConnTelemetryType = "closed_conn_dropped"
+	MonotonicConnDropped               ConnTelemetryType = "conn_dropped"
 	MonotonicConnsClosed               ConnTelemetryType = "conns_closed"
 	MonotonicConntrackRegisters        ConnTelemetryType = "conntrack_registers"
 	MonotonicConntrackRegistersDropped ConnTelemetryType = "conntrack_registers_dropped"
@@ -166,6 +168,8 @@ var (
 	MonotonicConnTelemetryTypes = []ConnTelemetryType{
 		MonotonicKprobesTriggered,
 		MonotonicKprobesMissed,
+		MonotonicClosedConnDropped,
+		MonotonicConnDropped,
 		MonotonicConntrackRegisters,
 		MonotonicConntrackRegistersDropped,
 		MonotonicDNSPacketsProcessed,
