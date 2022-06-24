@@ -138,6 +138,7 @@ const (
 	MonotonicConntrackRegisters        ConnTelemetryType = "conntrack_registers"
 	MonotonicConntrackRegistersDropped ConnTelemetryType = "conntrack_registers_dropped"
 	MonotonicDNSPacketsProcessed       ConnTelemetryType = "dns_packets_processed"
+	MonotonicPerfLost                  ConnTelemetryType = "perf_lost"
 	MonotonicUDPSendsProcessed         ConnTelemetryType = "udp_sends_processed"
 	MonotonicUDPSendsMissed            ConnTelemetryType = "udp_sends_missed"
 	DNSStatsDropped                    ConnTelemetryType = "dns_stats_dropped"
@@ -177,6 +178,7 @@ var (
 		MonotonicUDPSendsProcessed,
 		MonotonicUDPSendsMissed,
 		MonotonicDNSPacketsDropped,
+		MonotonicPerfLost,
 	}
 )
 
