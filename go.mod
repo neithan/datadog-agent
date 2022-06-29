@@ -139,6 +139,7 @@ require (
 	github.com/openshift/api v3.9.0+incompatible
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
+	github.com/planetscale/vtprotobuf v0.3.0
 	github.com/prometheus/client_golang v1.12.2
 	github.com/richardartoul/molecule v0.0.0-20210914193524-25d8911bb85b
 	github.com/samuel/go-zookeeper v0.0.0-20190923202752-2cc03de413da
@@ -409,7 +410,6 @@ require (
 
 require (
 	github.com/DataDog/datadog-agent/pkg/remoteconfig/state v0.38.0-rc.3
-	github.com/planetscale/vtprotobuf v0.3.0
 	github.com/robfig/cron v1.2.0
 )
 
