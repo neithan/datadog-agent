@@ -584,6 +584,9 @@ def generate_btfhub_constants(ctx, archive_path):
 
 @task
 def generate_proto(ctx):
-    ctx.run(
-        "protoc -I. --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative pkg/security/api/api.proto"
-    )
+    gopath=get_gopath(ctx)
+
+    basic_opts = "--go_out=. --go_opt=paths=source_relative"
+    vt_opts = f"--go-vtproto_out=. --plugin protoc-gen-go-vtproto='{gopath}/bin/protoc-gen-go-vtproto'"
+
+    ctx.run(f"protoc -I. {basic_opts} {vt_opts} pkg/security/api/api.proto")

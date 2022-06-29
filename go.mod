@@ -409,6 +409,7 @@ require (
 
 require (
 	github.com/DataDog/datadog-agent/pkg/remoteconfig/state v0.38.0-rc.3
+	github.com/planetscale/vtprotobuf v0.3.0
 	github.com/robfig/cron v1.2.0
 )
 
