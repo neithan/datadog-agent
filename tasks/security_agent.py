@@ -580,3 +580,7 @@ def generate_btfhub_constants(ctx, archive_path):
     ctx.run(
         f"go run ./pkg/security/probe/constantfetch/btfhub/ -archive-root {archive_path} -output {output_path}",
     )
+
+@task
+def generate_proto(ctx):
+    ctx.run("protoc -I. --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative pkg/security/api/api.proto")
