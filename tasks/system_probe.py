@@ -683,7 +683,6 @@ def build_security_probe_ebpf_files(ctx, build_dir, parallel_build=True, kernel_
 
     security_flags = get_ebpf_build_flags(kernel_release=kernel_release)
     security_flags.append(f"-I{security_agent_c_dir}")
-    security_flags.append("-DUSE_RING_BUFFER=1")
 
     # compile
     promises = []
