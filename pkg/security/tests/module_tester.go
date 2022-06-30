@@ -679,6 +679,10 @@ func newTestModule(t testing.TB, macroDefs []*rules.MacroDefinition, ruleDefs []
 		return nil, errors.Wrap(err, "failed to init module")
 	}
 
+	if os.Getenv("DD_TESTS_RUNTIME_COMPILED") == "1" && !testMod.module.GetProbe().IsRuntimeCompiled() {
+		return nil, errors.New("failed to runtime compile module")
+	}
+
 	testMod.probe.AddEventHandler(model.UnknownEventType, testMod.probeHandler)
 
 	if err := testMod.module.Start(); err != nil {
