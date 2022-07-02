@@ -764,6 +764,11 @@ func (p *Probe) handleEvent(CPU int, data []byte) {
 			log.Errorf("failed to decode bind event: %s (offset %d, len %d)", err, offset, len(data))
 			return
 		}
+	case model.SyscallsEventType:
+		if _, err = event.Syscalls.UnmarshalBinary(data[offset:]); err != nil {
+			log.Errorf("failed to decode syscalls event: %s (offset %d, len %d)", err, offset, len(data))
+			return
+		}
 	default:
 		log.Errorf("unsupported event type %d", eventType)
 		return
@@ -926,7 +931,7 @@ func (p *Probe) SelectProbes(rs *rules.RuleSet) error {
 	activatedProbes = append(activatedProbes, p.selectTCProbes())
 
 	// Add syscall monitor probes
-	if p.config.SyscallMonitor {
+	if p.config.ActivityDumpSyscallMonitor && p.config.ActivityDumpEnabled {
 		activatedProbes = append(activatedProbes, probes.SyscallMonitorSelectors...)
 	}
 
@@ -1293,7 +1298,7 @@ func NewProbe(config *config.Config, statsdClient statsd.ClientInterface) (*Prob
 		log.Warn("Forcing in-kernel filter policy to `pass`: filtering not enabled")
 	}
 
-	if p.config.SyscallMonitor {
+	if p.config.ActivityDumpSyscallMonitor && p.config.ActivityDumpEnabled {
 		// Add syscall monitor probes
 		p.managerOptions.ActivatedProbes = append(p.managerOptions.ActivatedProbes, probes.SyscallMonitorSelectors...)
 	}
@@ -1368,6 +1373,10 @@ func NewProbe(config *config.Config, statsdClient statsd.ClientInterface) (*Prob
 			Name:  "net_struct_type",
 			Value: getNetStructType(p.kernelVersion),
 		},
+		manager.ConstantEditor{
+			Name:  "syscall_monitor_event_period",
+			Value: uint64(p.config.ActivityDumpSyscallMonitorPeriod.Nanoseconds()),
+		},
 	)
 
 	p.managerOptions.ConstantEditors = append(p.managerOptions.ConstantEditors, DiscarderConstants...)
@@ -1392,14 +1401,6 @@ func NewProbe(config *config.Config, statsdClient statsd.ClientInterface) (*Prob
 				Value: uint64(1),
 			},
 		)
-	}
-
-	// constants syscall monitor
-	if p.config.SyscallMonitor {
-		p.managerOptions.ConstantEditors = append(p.managerOptions.ConstantEditors, manager.ConstantEditor{
-			Name:  "syscall_monitor",
-			Value: uint64(1),
-		})
 	}
 
 	// tail calls
