@@ -105,7 +105,7 @@ type ActivityDump struct {
 	StorageRequests     map[dump.StorageFormat][]dump.StorageRequest `msg:"storage_requests,omitempty" json:"-"`
 
 	// Dump metadata
-	DumpMetadata
+	DumpMetadata `msg:"metadata"`
 }
 
 // WithDumpOption can be used to configure an ActivityDump
