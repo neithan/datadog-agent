@@ -27,6 +27,9 @@ type Store interface {
 	// agent startup.
 	Start(ctx context.Context)
 
+	// StopAndWait is TODO
+	StopAndWait()
+
 	// Subscribe subscribes the caller to events representing changes to the
 	// store, limited to events matching the filter.  The name is used for
 	// telemetry and debugging.

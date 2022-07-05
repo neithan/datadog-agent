@@ -52,6 +52,9 @@ type store struct {
 	collectors   map[string]Collector
 
 	eventCh chan []CollectorEvent
+
+	stopOnce sync.Once
+	stopFn   context.CancelFunc
 }
 
 var _ Store = &store{}
@@ -79,6 +82,8 @@ func newStore(catalog map[string]collectorFactory) *store {
 
 // Start starts the workload metadata store.
 func (s *store) Start(ctx context.Context) {
+	ctx, s.stopFn = context.WithCancel(ctx)
+
 	go func() {
 		health := health.RegisterLiveness("workloadmeta-store")
 		for {
@@ -140,7 +145,7 @@ func (s *store) Start(ctx context.Context) {
 					log.Warnf("error de-registering health check: %s", err)
 				}
 
-				s.unsubscribeAll()
+				s.stop(false)
 
 				log.Infof("stopped workloadmeta store")
 
@@ -152,6 +157,30 @@ func (s *store) Start(ctx context.Context) {
 	s.startCandidates(ctx)
 
 	log.Info("workloadmeta store initialized successfully")
+}
+
+func (s *store) StopAndWait() {
+	s.stop(true)
+}
+
+func (s *store) stop(wait bool) {
+	s.stopOnce.Do(func() {
+		s.stopFn()
+
+		if wait {
+			log.Infof("waiting for events happening during shutdown...")
+
+			ctx, cancel := context.WithTimeout(context.Background(), pullCollectorInterval)
+			defer cancel()
+
+			wg := s.pull(ctx)
+			wg.Wait()
+
+			log.Infof("wait finished, goodbye!")
+		}
+
+		s.unsubscribeAll()
+	})
 }
 
 // Subscribe returns a channel where workload metadata events will be streamed
@@ -346,14 +375,20 @@ func (s *store) startCandidates(ctx context.Context) bool {
 	return len(s.candidates) == 0
 }
 
-func (s *store) pull(ctx context.Context) {
+func (s *store) pull(ctx context.Context) *sync.WaitGroup {
 	s.collectorMut.RLock()
 	defer s.collectorMut.RUnlock()
 
+	var wg sync.WaitGroup
+
 	for id, c := range s.collectors {
+		wg.Add(1)
+
 		// Run each pull in its own separate goroutine to reduce
 		// latency and unlock the main goroutine to do other work.
 		go func(id string, c Collector) {
+			defer wg.Done()
+
 			err := c.Pull(ctx)
 			if err != nil {
 				log.Warnf("error pulling from collector %q: %s", id, err.Error())
@@ -361,6 +396,8 @@ func (s *store) pull(ctx context.Context) {
 			}
 		}(id, c)
 	}
+
+	return &wg
 }
 
 func (s *store) handleEvents(evs []CollectorEvent) {
