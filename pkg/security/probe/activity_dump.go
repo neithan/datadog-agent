@@ -20,7 +20,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -962,19 +961,11 @@ func (pan *ProcessActivityNode) snapshotBoundSockets(p *process.Process, ad *Act
 		return err
 	}
 
-	// search for sockets only, exprimed in the form of "socket:[inode]"
-	rSocket, err := regexp.Compile("socket:\\[[0-9]+\\]")
-	if err != nil {
-		return err
-	}
-	rInode, err := regexp.Compile("[0-9]+")
-	if err != nil {
-		return err
-	}
+	// sockets have the following pattern "socket:[inode]"
 	var sockets []uint64
 	for _, fd := range FDs {
-		if rSocket.MatchString(fd.Path) {
-			sock, err := strconv.Atoi(rInode.FindString(fd.Path))
+		if strings.HasPrefix(fd.Path, "socket:[") {
+			sock, err := strconv.Atoi(strings.TrimPrefix(fd.Path[:len(fd.Path)-1], "socket:["))
 			if err != nil {
 				return err
 			}
@@ -988,9 +979,8 @@ func (pan *ProcessActivityNode) snapshotBoundSockets(p *process.Process, ad *Act
 		return nil
 	}
 
-	// init procfs to parse /proc/net/tcp,tcp6,udp,udp6 files, looking for the grabbed
-	// process socket inodes
-	proc, _ := procfs.NewFS(util.HostProc())
+	// use /proc/[pid]/net/tcp,tcp6,udp,udp6 to extract the ports opened by the current process
+	proc, _ := procfs.NewFS(filepath.Join(util.HostProc(), fmt.Sprintf("%d", p.Pid)))
 	if err != nil {
 		return err
 	}
